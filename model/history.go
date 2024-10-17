@@ -1,6 +1,11 @@
 package model
 
-import "time"
+import (
+	"log"
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type History struct {
 	ID        int       `gorm:"primaryKey;colum:id;autoIncrement"`
@@ -12,4 +17,15 @@ type History struct {
 	CreatedAt time.Time `gorm:"colum:created_at;autoCreateTime"`
 
 	Process *Process `gorm:"foreignKey:process_id;references:id"`
+}
+
+func DeleteOldHistories(db *gorm.DB, hours int) {
+	// Database connection string
+	// Prepare the delete statement
+
+	result := db.Exec("DELETE FROM histories WHERE created_at < NOW() - INTERVAL ? HOUR", hours)
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		log.Default().Panic(result.Error)
+	}
+	log.Printf("Deleted %d records\n", result.RowsAffected)
 }
